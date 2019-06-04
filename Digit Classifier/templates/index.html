@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Handwritten Digit Recognition using machine learning</title>
+  
+  
+  
+    <style type="text/css">
+    	@import url('http://fonts.googleapis.com/css?family=Open+Sans:400,300');
+
+* { margin: 0; padding: 0; }
+
+html
+{
+	background-image: -webkit-radial-gradient(top center, circle cover, #E7E7E8 30%, #C6C6C6);
+	background-image: -moz-radial-gradient(top center, circle cover, #E7E7E8 30%, #C6C6C6);
+	background-image: -ms-radial-gradient(top center, circle cover, #E7E7E8 30%, #C6C6C6);
+	background-image: -o-radial-gradient(top center, circle cover, #E7E7E8 30%, #C6C6C6);
+	background-image: radial-gradient(top center, circle cover, #E7E7E8 30%, #C6C6C6);
+	height: 100%;
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	-o-user-select: none;
+	user-select: none;
+	overflow: hidden;
+  
+  
+}
+
+h1
+{
+	position: absolute;
+	top: 20px;
+	left: 0;
+	right: 0;
+	text-align: center;
+	font-family: 'Open Sans', Helvetica;
+	color: #807F7D;
+	font-size: 25px;
+	font-weight: 300;
+	z-index: -1;
+}
+
+h1 span { color: #4DAF7C; font-weight: 400; }
+
+/* Debug */
+
+#debug
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	padding: 5px;
+}
+.myButton {
+	-moz-box-shadow: 0px 10px 14px -7px #3e7327;
+	-webkit-box-shadow: 0px 10px 14px -7px #3e7327;
+	box-shadow: 0px 10px 14px -7px #3e7327;
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #4DAF7C), color-stop(1, #72b352));
+	background:-moz-linear-gradient(top, #4DAF7C 5%, #72b352 100%);
+	background:-webkit-linear-gradient(top, #4DAF7C 5%, #72b352 100%);
+	background:-o-linear-gradient(top, #4DAF7C 5%, #72b352 100%);
+	background:-ms-linear-gradient(top, #4DAF7C 5%, #72b352 100%);
+	background:linear-gradient(to bottom, #4DAF7C 5%, #72b352 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#4DAF7C', endColorstr='#72b352',GradientType=0);
+	background-color:#4DAF7C;
+	-moz-border-radius:4px;
+	-webkit-border-radius:4px;
+	border-radius:4px;
+	border:1px solid #4b8f29;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Arial;
+	font-size:15px;
+	padding:6px 13px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #5b8a3c;
+}
+.myButton:hover {
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #72b352), color-stop(1, #4DAF7C));
+	background:-moz-linear-gradient(top, #72b352 5%, #4DAF7C 100%);
+	background:-webkit-linear-gradient(top, #72b352 5%, #4DAF7C 100%);
+	background:-o-linear-gradient(top, #72b352 5%, #4DAF7C 100%);
+	background:-ms-linear-gradient(top, #72b352 5%, #4DAF7C 100%);
+	background:linear-gradient(to bottom, #72b352 5%, #4DAF7C 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#72b352', endColorstr='#4DAF7C',GradientType=0);
+	background-color:#4DAF7C;
+}
+.myButton:active {
+	position:relative;
+	top:1px;
+}
+
+    </style>
+
+</head>
+
+<body>
+ 
+		<h1>Handwritten Digit Recognition using <span>Machine Learning</span></h1>
+
+		<canvas id="canvas" width="100" height="100" style="border:8px solid; float: left; margin: 70px; margin-top:160px;  border-radius: 5px; cursor: crosshair;"></canvas>
+		<div id="debug" style="margin:65px; margin-top:100px;">
+
+			
+			<!-- <input type="color" id="colors">
+			 <input type="number" id="lineWidth" style="width:60px" value="0.2" step="0.1" min="0.1"> -->
+			<input type="button" id="clearButton" value="Clear" style="">
+			<br/>
+			<span style="color: #4DAF7C; font-weight: 400; font-family: 'Open Sans', Helvetica;	">Draw the Digit inside this Box!</span>
+		</div>
+
+		<div style="margin-left:175px; margin-top:460px; float:left; position:absolute;">
+			
+			<a href="#" class="myButton"><span style=" font-weight: 400; font-family: 'Open Sans', Helvetica;	"> Predict </span></a>			
+		</div>
+		<div >
+			<h1 id="result" style="margin-right:20px; margin-top:300px;float:left;"><span> </span></h1>
+		</div>
+
+		
+  		<script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+
+	    <script type="text/javascript">
+	    	(function()
+{
+	var canvas = document.querySelector( "#canvas" );
+	var context = canvas.getContext( "2d" );
+	canvas.width = 280;
+	canvas.height = 280;
+
+	var Mouse = { x: 0, y: 0 };
+	var lastMouse = { x: 0, y: 0 };
+	context.fillStyle="white";
+	context.fillRect(0,0,canvas.width,canvas.height);
+	context.color = "black";
+	context.lineWidth = 10;
+    context.lineJoin = context.lineCap = 'round';
+	
+	debug();
+
+	canvas.addEventListener( "mousemove", function( e )
+	{
+		lastMouse.x = Mouse.x;
+		lastMouse.y = Mouse.y;
+
+		Mouse.x = e.pageX - this.offsetLeft;
+		Mouse.y = e.pageY - this.offsetTop;
+
+	}, false );
+
+	canvas.addEventListener( "mousedown", function( e )
+	{
+		canvas.addEventListener( "mousemove", onPaint, false );
+
+	}, false );
+
+	canvas.addEventListener( "mouseup", function()
+	{
+		canvas.removeEventListener( "mousemove", onPaint, false );
+
+	}, false );
+
+	var onPaint = function()
+	{	
+		context.lineWidth = context.lineWidth;
+		context.lineJoin = "round";
+		context.lineCap = "round";
+		context.strokeStyle = context.color;
+	
+		context.beginPath();
+		context.moveTo( lastMouse.x, lastMouse.y );
+		context.lineTo( Mouse.x, Mouse.y );
+		context.closePath();
+		context.stroke();
+	};
+
+	function debug()
+	{
+		/* CLEAR BUTTON */
+		var clearButton = $( "#clearButton" );
+		
+		clearButton.on( "click", function()
+		{
+			
+				context.clearRect( 0, 0, 280, 280 );
+				context.fillStyle="white";
+				context.fillRect(0,0,canvas.width,canvas.height);
+			
+		});
+
+		/* COLOR SELECTOR */
+
+		$( "#colors" ).change(function()
+		{
+			var color = $( "#colors" ).val();
+			context.color = color;
+		});
+		
+		/* LINE WIDTH */
+		
+		$( "#lineWidth" ).change(function()
+		{
+			context.lineWidth = $( this ).val();
+		});
+	}
+}());
+	   
+	   		$(".myButton").click(function(){
+	   			var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+	   			var canvasObj = document.getElementById("canvas");
+	   			var img = canvasObj.toDataURL("image/png");
+	   			$.ajax({
+	   				type: "POST",
+	   				url: $SCRIPT_ROOT + "/predict/",
+	   				data: img,
+	   				success: function(data){
+	   					$('#result').text(' Predicted Output: '+data);
+	   				}
+	   			});
+	   		});
+	   
+	   </script>
+</body>
+</html>
